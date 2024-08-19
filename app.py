@@ -5,6 +5,7 @@ from model import create_model
 from attacks import fgsm_attack
 from defense import adversarial_training
 import numpy as np
+import gc
 
 def main():
     st.sidebar.title("Adversarial AI Attacks and Defenses")
@@ -38,6 +39,10 @@ def main():
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
     x_train, x_test = x_train / 255.0, x_test / 255.0
     x_train, x_test = x_train[..., tf.newaxis], x_test[..., tf.newaxis]
+    
+    # Use a subset for memory efficiency
+    x_train = x_train[:10000]
+    y_train = y_train[:10000]
 
     # Initialize model
     model = create_model()
@@ -59,7 +64,7 @@ def main():
         st.session_state.show_train_slider = True
         st.session_state.show_attack_slider = False
         st.session_state.training = True
-        
+
     if st.session_state.show_train_slider:
         epsilon = st.slider('Epsilon for Training', 0.0, 1.0, st.session_state.epsilon, key='train_epsilon_slider')
         st.session_state.epsilon = epsilon
@@ -69,6 +74,7 @@ def main():
                 adversarial_training(model, x_train, y_train, x_test, y_test, epsilon)
             st.write("Model trained with adversarial defense.")
             st.session_state.training = False
+            gc.collect()
 
     if st.session_state.training:
         st.text('Training in progress...')
